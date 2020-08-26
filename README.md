@@ -4,7 +4,7 @@ A perceptron-based Neural Network in C#.
 This project uses the .NET Core framework.
 
 ## Function Types
-This is currently a single-layer perceptron-based neural network. That means this network is abe to learn linearly seperable functions such as:
+This is currently a single-layer perceptron-based neural network. That means this network is able to learn linearly seperable functions such as:
 * AND
 * OR
 * NOT

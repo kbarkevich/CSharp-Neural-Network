@@ -9,6 +9,7 @@ This is currently a single-layer perceptron-based neural network. That means thi
 * OR
 * NOT
 * NAND
+
 Non-linearly seperable functions are not able to be learned by this neural network. Example:
 * XOR
 

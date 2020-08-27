@@ -10,7 +10,7 @@ namespace CSharp_Neural_Network
     class Perceptron
     {
         readonly Func<double, double> STEP_FUNCTION = (double input) => { return Math.Ceiling(input); };
-        readonly Func<double, double> SIGMOID_FUNCTION = (double input) => { return 1 / (1 + Math.Pow(Math.E, input)); };
+        readonly Func<double, double> SIGMOID_FUNCTION = (double input) => { return 1 / (1 + Math.Pow(Math.E, -input)); };
 
         protected double Value { get; set; }
         private List<Link> InputLinks { get; set; }
@@ -28,7 +28,7 @@ namespace CSharp_Neural_Network
             OutputLinks = new List<Link>();
             Value = 0;
             Id = id;
-            ActivationFunction = STEP_FUNCTION;
+            ActivationFunction = SIGMOID_FUNCTION;
         }
 
         /// <summary>

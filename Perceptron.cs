@@ -9,10 +9,14 @@ namespace CSharp_Neural_Network
 {
     class Perceptron
     {
+        readonly Func<double, double> STEP_FUNCTION = (double input) => { return Math.Ceiling(input); };
+        readonly Func<double, double> SIGMOID_FUNCTION = (double input) => { return 1 / (1 + Math.Pow(Math.E, input)); };
+
         protected double Value { get; set; }
         private List<Link> InputLinks { get; set; }
         protected List<Link> OutputLinks { get; set; }
         public uint Id { get; set; }
+        private Func<double, double> ActivationFunction { get; set; }
 
         /// <summary>
         /// Constructor for a perceptron, an artificial neuron.
@@ -24,6 +28,7 @@ namespace CSharp_Neural_Network
             OutputLinks = new List<Link>();
             Value = 0;
             Id = id;
+            ActivationFunction = STEP_FUNCTION;
         }
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace CSharp_Neural_Network
             {
                 value += link.Pass();
             }
-            Value = Math.Ceiling(value);
+            Value = ActivationFunction(value);
         }
 
         /// <summary>

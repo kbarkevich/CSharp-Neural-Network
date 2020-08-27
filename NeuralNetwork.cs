@@ -50,7 +50,7 @@ namespace CSharp_Neural_Network
                     links_count += layersWidth * layersWidth;
                 }
                 links_count += layersWidth * outputs;
-                Links = new Link[inputs * outputs];
+                Links = new Link[links_count];
             }
             else
             {

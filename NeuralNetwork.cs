@@ -21,6 +21,7 @@ namespace CSharp_Neural_Network
         public double LearningRate { get; set; }
 
         private InputPerceptron[] Inputs { get; set; }
+        private Perceptron[,] HiddenLayers { get; set; }
         private Perceptron[] Outputs { get; set; }
         private Link[] Links { get; set; }
         private bool Extension { get; set; }
@@ -32,14 +33,29 @@ namespace CSharp_Neural_Network
         /// <param name="inputs">Number of inputs to expect for this neural network.</param>
         /// <param name="outputs">Number of outputs to expect for this neural network.</param>
         /// <param name="extension">Whether or not to create an additional constant input set to 1. This is required for some functions, such as AND.</param>
-        public NeuralNetwork(double _LearningRate, uint inputs, uint outputs, bool extension)
+        public NeuralNetwork(double _LearningRate, uint inputs, uint outputs, uint hiddenLayers, uint layersWidth, bool extension)
         {
             if (extension)
                 inputs++;
             LearningRate = _LearningRate;
             Inputs = new InputPerceptron[inputs];
+            HiddenLayers = new Perceptron[hiddenLayers, layersWidth];
             Outputs = new Perceptron[outputs];
-            Links = new Link[inputs * outputs];
+            uint links_count = 0;
+            if (hiddenLayers > 0)
+            {
+                links_count += inputs * layersWidth;
+                for(int i = 0; i < hiddenLayers-1; i++)
+                {
+                    links_count += layersWidth * layersWidth;
+                }
+                links_count += layersWidth * outputs;
+                Links = new Link[inputs * outputs];
+            }
+            else
+            {
+                Links = new Link[inputs * outputs];
+            }
             Extension = extension;
 
             uint idCount = 0;
@@ -50,16 +66,40 @@ namespace CSharp_Neural_Network
                 idCount++;
             }
 
-            uint links_count = 0;
+            links_count = 0;
+            Perceptron[] last_layer = Inputs;
+            if (hiddenLayers > 0 && layersWidth > 0)
+            {
+                for (int i = 0; i < hiddenLayers; i++)
+                {
+                    Perceptron[] current_layer = new Perceptron[layersWidth];
+                    for (int j = 0; j < layersWidth; j++)
+                    {
+                        Perceptron currentPerceptron = new Perceptron(idCount);
+                        HiddenLayers[i, j] = currentPerceptron;
+                        current_layer[j] = currentPerceptron;
+                        idCount++;
+                        for (int k = 0; k < last_layer.Length; k++)
+                        {
+                            Link newLink = new Link(last_layer[k], currentPerceptron);
+                            Links[links_count] = newLink;
+                            links_count++;
+                        }
+                    }
+                    last_layer = new Perceptron[layersWidth];
+                    current_layer.CopyTo(last_layer, 0);
+                }
+            }
+
             for (int i = 0; i < outputs; i++)
             {
                 Perceptron perceptron = new Perceptron(idCount);
                 Outputs[i] = perceptron;
                 idCount++;
 
-                foreach (Perceptron input in Inputs)
+                foreach (Perceptron previous in last_layer)
                 {
-                    Link link = new Link(input, perceptron);
+                    Link link = new Link(previous, perceptron);
                     Links[links_count] = link;
                     links_count++;
                 }

@@ -50,7 +50,7 @@ namespace CSharp_Neural_Network
             TRAINING_SET.set = OR_SET;  // Choose set to train on, or make your own (linearly seperable) function set
 
             Console.WriteLine("Generating Neural Network...");
-            NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, true);
+            NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, 2, 3, true);
             Console.WriteLine("Generated!");
             network.Train(TRAINING_SET);
         }

@@ -4,26 +4,39 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace CSharp_Neural_Network
 {
     class Perceptron
     {
+        public enum FUNCTION_TYPE { SIGMOID };
+        readonly static Func<double, double> SIGMOID_FUNCTION = (double input) => { return 1 / (1 + Math.Pow(Math.E, -input)); };
+        readonly static Func<double, double> SIGMOID_PRIME_FUNCTION = (double input) => { return SIGMOID_FUNCTION(input) * (1 - SIGMOID_FUNCTION(input)); };
+
+        protected double Z { get; set; }
         protected double Value { get; set; }
-        private List<Link> InputLinks { get; set; }
+        protected List<Link> InputLinks { get; set; }
         protected List<Link> OutputLinks { get; set; }
         public uint Id { get; set; }
+        private Func<double, double> Sigma { get; set; }
+        protected Func<double, double> SigmaPrime { get; set; }
+        public double Error { get; protected set; }
 
         /// <summary>
         /// Constructor for a perceptron, an artificial neuron.
         /// </summary>
         /// <param name="id">Id for this perceptron, decorative only.</param>
-        public Perceptron(uint id)
+        /// <param name="functionType">Activation function to use.</param>
+        public Perceptron(uint id, FUNCTION_TYPE functionType)
         {
             InputLinks = new List<Link>();
             OutputLinks = new List<Link>();
+            Z = 0;
             Value = 0;
             Id = id;
+            Sigma = SIGMOID_FUNCTION;
+            SigmaPrime = SIGMOID_PRIME_FUNCTION;
         }
 
         /// <summary>
@@ -49,12 +62,13 @@ namespace CSharp_Neural_Network
         /// </summary>
         public void Set()
         {
-            double value = 0.0;
+            Z = 0;
             foreach (Link link in InputLinks)
             {
-                value += link.Pass();
+                Z += link.Pass();
             }
-            Value = Math.Ceiling(value);
+            Value = Sigma(Z);
+            
         }
 
         /// <summary>
@@ -62,12 +76,26 @@ namespace CSharp_Neural_Network
         /// </summary>
         /// <param name="learningRate">The learning rate to adjust the input weights by.</param>
         /// <param name="error">The error size.</param>
-        public void BackPropogate(double learningRate, double error)
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
+        public void BackPropogate(double learningRate, double error, bool enhancedOutput)
         {
             foreach (Link inputLink in InputLinks)
             {
-                inputLink.BackPropogate(learningRate, error);
+                inputLink.BackPropogate(learningRate, error, enhancedOutput);
             }
+        }
+
+        /// <summary>
+        /// Calculate and store the error based on the stored valus and the Sigma Prime function.
+        /// </summary>
+        public void CalculateError()
+        {
+            double sum = 0.0;
+            foreach (Link link in OutputLinks)
+            {
+                sum += (link.Weight * link.End.Error);
+            }
+            Error = sum * SigmaPrime(Z);
         }
 
         /// <summary>
@@ -95,9 +123,10 @@ namespace CSharp_Neural_Network
         /// Constructor for a perceptron that accepts input from externally rather than from other perceptrons' links.
         /// </summary>
         /// <param name="id">Id for this perceptron, decorative only.</param>
-        public InputPerceptron(uint id) : base(id)
+        public InputPerceptron(uint id, FUNCTION_TYPE functionType) : base(id, functionType)
         {
             OutputLinks = new List<Link>();
+            Z = 0;
             Value = 0;
         }
         
@@ -109,5 +138,30 @@ namespace CSharp_Neural_Network
         {
             Value = Math.Ceiling(value);
         }
+    }
+
+    class OutputPerceptron : Perceptron
+    {
+        /// <summary>
+        /// Constructor for a perceptron that accepts input from externally rather than from other perceptrons' links.
+        /// </summary>
+        /// <param name="id">Id for this perceptron, decorative only.</param>
+        /// <param name="functionType">Activation function to use.</param>
+        public OutputPerceptron(uint id, FUNCTION_TYPE functionType) : base(id, functionType)
+        {
+            InputLinks = new List<Link>();
+            Z = 0;
+            Value = 0;
+        }
+
+        /// <summary>
+        /// Calculate and store the error based on the stored values, Sigma Prime function, and the provided expected input.
+        /// </summary>
+        /// <param name="expected"></param>
+        public void CalculateError(double expected)
+        {
+            Error = (Value - expected) * SigmaPrime(Z);
+        }
+
     }
 }

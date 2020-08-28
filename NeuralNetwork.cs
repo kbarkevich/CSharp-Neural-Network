@@ -19,9 +19,9 @@ namespace CSharp_Neural_Network
     class NeuralNetwork
     {
         public double LearningRate { get; set; }
-
         private InputPerceptron[] Inputs { get; set; }
-        private Perceptron[] Outputs { get; set; }
+        private Perceptron[,] HiddenLayers { get; set; }
+        private OutputPerceptron[] Outputs { get; set; }
         private Link[] Links { get; set; }
         private bool Extension { get; set; }
 
@@ -31,35 +31,77 @@ namespace CSharp_Neural_Network
         /// <param name="_LearningRate">Rate at which the weights of Links are adjusted.</param>
         /// <param name="inputs">Number of inputs to expect for this neural network.</param>
         /// <param name="outputs">Number of outputs to expect for this neural network.</param>
+        /// <param name="hiddenLayers">Number of hidden layers >= 0 to create for this neural network.</param>
+        /// <param name="layersWidth">Number of perceptrons >= 0 to create within each hidden layer.</param>
+        /// <param name="functionType">Activation function to use.</param>
         /// <param name="extension">Whether or not to create an additional constant input set to 1. This is required for some functions, such as AND.</param>
-        public NeuralNetwork(double _LearningRate, uint inputs, uint outputs, bool extension)
+        public NeuralNetwork(double _LearningRate, uint inputs, uint outputs, uint hiddenLayers, uint layersWidth, Perceptron.FUNCTION_TYPE functionType, bool extension)
         {
             if (extension)
                 inputs++;
             LearningRate = _LearningRate;
             Inputs = new InputPerceptron[inputs];
-            Outputs = new Perceptron[outputs];
-            Links = new Link[inputs * outputs];
+            HiddenLayers = new Perceptron[hiddenLayers, layersWidth];
+            Outputs = new OutputPerceptron[outputs];
+            uint links_count = 0;
+            if (hiddenLayers > 0)
+            {
+                links_count += inputs * layersWidth;
+                for(int i = 0; i < hiddenLayers-1; i++)
+                {
+                    links_count += layersWidth * layersWidth;
+                }
+                links_count += layersWidth * outputs;
+                Links = new Link[links_count];
+            }
+            else
+            {
+                Links = new Link[inputs * outputs];
+            }
             Extension = extension;
 
             uint idCount = 0;
             for (int i = 0; i < inputs; i++)
             {
-                InputPerceptron perceptron = new InputPerceptron(idCount);
+                InputPerceptron perceptron = new InputPerceptron(idCount, functionType);
                 Inputs[i] = perceptron;
                 idCount++;
             }
 
-            uint links_count = 0;
+            links_count = 0;
+            Perceptron[] last_layer = Inputs;
+            if (hiddenLayers > 0 && layersWidth > 0)
+            {
+                for (int i = 0; i < hiddenLayers; i++)
+                {
+                    Perceptron[] current_layer = new Perceptron[layersWidth];
+                    for (int j = 0; j < layersWidth; j++)
+                    {
+                        Perceptron currentPerceptron = new Perceptron(idCount, functionType);
+                        HiddenLayers[i, j] = currentPerceptron;
+                        current_layer[j] = currentPerceptron;
+                        idCount++;
+                        for (int k = 0; k < last_layer.Length; k++)
+                        {
+                            Link newLink = new Link(last_layer[k], currentPerceptron);
+                            Links[links_count] = newLink;
+                            links_count++;
+                        }
+                    }
+                    last_layer = new Perceptron[layersWidth];
+                    current_layer.CopyTo(last_layer, 0);
+                }
+            }
+
             for (int i = 0; i < outputs; i++)
             {
-                Perceptron perceptron = new Perceptron(idCount);
+                OutputPerceptron perceptron = new OutputPerceptron(idCount, functionType);
                 Outputs[i] = perceptron;
                 idCount++;
 
-                foreach (Perceptron input in Inputs)
+                foreach (Perceptron previous in last_layer)
                 {
-                    Link link = new Link(input, perceptron);
+                    Link link = new Link(previous, perceptron);
                     Links[links_count] = link;
                     links_count++;
                 }
@@ -70,7 +112,9 @@ namespace CSharp_Neural_Network
         /// Train the neural network off of a training set.
         /// </summary>
         /// <param name="trainingSet">The training set to train the neural network off of. Must represent a LINEARLY SEPERABLE function.</param>
-        public void Train(TrainingSet trainingSet)
+        /// <param name="valid">Acceptable success ratio, between 0.0 and 1.0, at which to stop training.</param>
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
+        public void Train(TrainingSet trainingSet, double valid, bool enhancedOutput)
         {
             bool done = false;
             uint epochCount = 0;
@@ -80,7 +124,8 @@ namespace CSharp_Neural_Network
                 epochCount++;
                 Console.WriteLine();
                 Console.WriteLine("---------------------- EPOCH: " + epochCount + "----------------------");
-                done = true;
+                //done = true;
+                double outersum = 0.0;
                 foreach (TrainingInput trainingInput in trainingSet.set)
                 {
                     if (((!Extension && trainingInput.ins.Length == Inputs.Length) || (Extension && trainingInput.ins.Length == Inputs.Length - 1)) && trainingInput.outs.Length == Outputs.Length)
@@ -108,26 +153,54 @@ namespace CSharp_Neural_Network
                         }
                         if (Extension)
                             Inputs[Inputs.Length - 1].Set(1);
-                        // ---------------------- TRAINING RUN PART 2: RUN AND PRINT OUTPUTS + EXPECTED OUTPUTS ----------------------
-                        Run();
-                        Console.WriteLine("Expected: " + expectedStr);
-                        Console.WriteLine();
+                        // ---------------------- TRAINING RUN PART 2: FEED FORWARD AND PRINT OUTPUTS + EXPECTED OUTPUTS ----------------------
+                        Run(enhancedOutput);
+                        if (enhancedOutput)
+                        {
+                            Console.WriteLine("Expected: " + expectedStr);
+                            Console.WriteLine();
+                        }
                         // ---------------------- TRAINING RUN PART 3: BACKPROPAGATE ---------------------- 
+                        double sum = 0.0;
                         for (int i = 0; i < expected.Length; i++)
                         {
-                            double error = expected[i] - Outputs[i].Read();
-                            if (error != 0.0)
+                            //double error = expected[i] - Outputs[i].Read();
+                            Outputs[i].CalculateError(expected[i]);
+                            //if (error != 0.0)
+                            //{
+                            //done = false;
+                            //    Outputs[i].BackPropogate(LearningRate, error);
+                            //}
+                            //sum += Math.Abs(error);
+                            if (Outputs[i].Error != 0.0)
                             {
-                                done = false;
-                                Outputs[i].BackPropogate(LearningRate, error);
+                                Outputs[i].BackPropogate(LearningRate, Outputs[i].Error, enhancedOutput);
+                            }
+                            sum += Math.Abs(expected[i] - Outputs[i].Read());
+                        }
+                        for (int i = HiddenLayers.GetLength(0) - 1; i >= 0; i--)
+                        {
+                            for (int j = 0; j < HiddenLayers.GetLength(1); j++)
+                            {
+                                HiddenLayers[i, j].CalculateError();
+                                HiddenLayers[i, j].BackPropogate(LearningRate, HiddenLayers[i, j].Error, enhancedOutput);
                             }
                         }
+                        Console.WriteLine();
+                        Console.WriteLine();
+                        sum = sum / expected.Length;
+                        outersum += 1 - sum;
                     }
                     else
                     {
                         throw new Exception("Error: Training input input or output sizes do not match that of the network!");
                     }
                 }
+                outersum = outersum / trainingSet.set.Length;
+                Console.WriteLine("Current Success Ratio: " + outersum);
+                Console.WriteLine("Valid Success Ratio:   " + valid);
+                if (outersum >= valid)
+                    done = true;
                 // ---------------------- END EPOCH ----------------------
             }
             Console.WriteLine();
@@ -137,14 +210,24 @@ namespace CSharp_Neural_Network
         /// <summary>
         /// Run the neural network with the current inputs stored in the input perceptrons.
         /// </summary>
-        private void Run()
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
+        private void Run(bool enhancedOutput)
         {
-            Console.WriteLine("Input: " + Input());
+            if (enhancedOutput)
+                Console.WriteLine("Input: " + Input());
+            for (int i = 0; i < HiddenLayers.GetLength(0); i++)
+            {
+                for (int j = 0; j < HiddenLayers.GetLength(1); j++)
+                {
+                    HiddenLayers[i, j].Set();
+                }
+            }
             foreach (Perceptron perceptron in Outputs)
             {
                 perceptron.Set();
             }
-            Console.WriteLine("Output: " + Output());
+            if (enhancedOutput)
+                Console.WriteLine("Output: " + Output());
         }
 
         /// <summary>

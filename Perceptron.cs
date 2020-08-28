@@ -10,9 +10,7 @@ namespace CSharp_Neural_Network
 {
     class Perceptron
     {
-        public enum FUNCTION_TYPE { STEP, SIGMOID };
-        readonly static Func<double, double> STEP_FUNCTION = (double input) => { if (input < 0) return 0; return 1; };
-        readonly static Func<double, double> STEP_PRIME_FUNCTION = (double input) => { return 0; };
+        public enum FUNCTION_TYPE { SIGMOID };
         readonly static Func<double, double> SIGMOID_FUNCTION = (double input) => { return 1 / (1 + Math.Pow(Math.E, -input)); };
         readonly static Func<double, double> SIGMOID_PRIME_FUNCTION = (double input) => { return SIGMOID_FUNCTION(input) * (1 - SIGMOID_FUNCTION(input)); };
 
@@ -37,16 +35,8 @@ namespace CSharp_Neural_Network
             Z = 0;
             Value = 0;
             Id = id;
-            if (functionType == FUNCTION_TYPE.STEP)
-            {
-                Sigma = STEP_FUNCTION;
-                SigmaPrime = STEP_PRIME_FUNCTION;
-            }
-            else
-            {
-                Sigma = SIGMOID_FUNCTION;
-                SigmaPrime = SIGMOID_PRIME_FUNCTION;
-            }
+            Sigma = SIGMOID_FUNCTION;
+            SigmaPrime = SIGMOID_PRIME_FUNCTION;
         }
 
         /// <summary>

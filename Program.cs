@@ -67,7 +67,7 @@ namespace CSharp_Neural_Network
             Console.WriteLine("Generating Neural Network...");
             NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, 2, 3, Perceptron.FUNCTION_TYPE.SIGMOID, true);
             Console.WriteLine("Generated!");
-            network.Train(TRAINING_SET, 0.90, true);
+            network.Train(TRAINING_SET, 0.90, false);
         }
     }
 }

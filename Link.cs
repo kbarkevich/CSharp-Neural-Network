@@ -8,7 +8,7 @@ namespace CSharp_Neural_Network
 {
     class Link
     {
-        private double Weight { get; set; }
+        public double Weight { get; private set; }
         public Perceptron Start { get; set; }
         public Perceptron End { get; set; }
 
@@ -51,7 +51,7 @@ namespace CSharp_Neural_Network
             Console.WriteLine("UPDATING " + ToString());
             Console.WriteLine("Rate: " + learningRate.ToString() + ", xi:" + Start.Read().ToString() + ", error: " + error.ToString());
             Console.WriteLine("From " + Weight.ToString());
-            Weight = Weight + (learningRate * Start.Read() * error);
+            Weight = Weight - (learningRate * Start.Read() * error);
             Console.WriteLine("To   " + Weight.ToString());
         }
 

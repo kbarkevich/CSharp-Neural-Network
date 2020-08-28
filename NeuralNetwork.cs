@@ -19,7 +19,6 @@ namespace CSharp_Neural_Network
     class NeuralNetwork
     {
         public double LearningRate { get; set; }
-
         private InputPerceptron[] Inputs { get; set; }
         private Perceptron[,] HiddenLayers { get; set; }
         private OutputPerceptron[] Outputs { get; set; }
@@ -32,6 +31,9 @@ namespace CSharp_Neural_Network
         /// <param name="_LearningRate">Rate at which the weights of Links are adjusted.</param>
         /// <param name="inputs">Number of inputs to expect for this neural network.</param>
         /// <param name="outputs">Number of outputs to expect for this neural network.</param>
+        /// <param name="hiddenLayers">Number of hidden layers >= 0 to create for this neural network.</param>
+        /// <param name="layersWidth">Number of perceptrons >= 0 to create within each hidden layer.</param>
+        /// <param name="functionType">Activation function to use.</param>
         /// <param name="extension">Whether or not to create an additional constant input set to 1. This is required for some functions, such as AND.</param>
         public NeuralNetwork(double _LearningRate, uint inputs, uint outputs, uint hiddenLayers, uint layersWidth, Perceptron.FUNCTION_TYPE functionType, bool extension)
         {
@@ -111,7 +113,7 @@ namespace CSharp_Neural_Network
         /// </summary>
         /// <param name="trainingSet">The training set to train the neural network off of. Must represent a LINEARLY SEPERABLE function.</param>
         /// <param name="valid">Acceptable success ratio, between 0.0 and 1.0, at which to stop training.</param>
-
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
         public void Train(TrainingSet trainingSet, double valid, bool enhancedOutput)
         {
             bool done = false;
@@ -208,6 +210,7 @@ namespace CSharp_Neural_Network
         /// <summary>
         /// Run the neural network with the current inputs stored in the input perceptrons.
         /// </summary>
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
         private void Run(bool enhancedOutput)
         {
             if (enhancedOutput)

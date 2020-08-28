@@ -29,6 +29,7 @@ namespace CSharp_Neural_Network
         /// Constructor for a perceptron, an artificial neuron.
         /// </summary>
         /// <param name="id">Id for this perceptron, decorative only.</param>
+        /// <param name="functionType">Activation function to use.</param>
         public Perceptron(uint id, FUNCTION_TYPE functionType)
         {
             InputLinks = new List<Link>();
@@ -85,6 +86,7 @@ namespace CSharp_Neural_Network
         /// </summary>
         /// <param name="learningRate">The learning rate to adjust the input weights by.</param>
         /// <param name="error">The error size.</param>
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
         public void BackPropogate(double learningRate, double error, bool enhancedOutput)
         {
             foreach (Link inputLink in InputLinks)
@@ -93,6 +95,9 @@ namespace CSharp_Neural_Network
             }
         }
 
+        /// <summary>
+        /// Calculate and store the error based on the stored valus and the Sigma Prime function.
+        /// </summary>
         public void CalculateError()
         {
             double sum = 0.0;
@@ -151,6 +156,7 @@ namespace CSharp_Neural_Network
         /// Constructor for a perceptron that accepts input from externally rather than from other perceptrons' links.
         /// </summary>
         /// <param name="id">Id for this perceptron, decorative only.</param>
+        /// <param name="functionType">Activation function to use.</param>
         public OutputPerceptron(uint id, FUNCTION_TYPE functionType) : base(id, functionType)
         {
             InputLinks = new List<Link>();
@@ -158,6 +164,10 @@ namespace CSharp_Neural_Network
             Value = 0;
         }
 
+        /// <summary>
+        /// Calculate and store the error based on the stored values, Sigma Prime function, and the provided expected input.
+        /// </summary>
+        /// <param name="expected"></param>
         public void CalculateError(double expected)
         {
             Error = (Value - expected) * SigmaPrime(Z);

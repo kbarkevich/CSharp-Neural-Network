@@ -46,13 +46,14 @@ namespace CSharp_Neural_Network
             NOT_SET[1].ins = new bool[] { true };
             NOT_SET[1].outs = new bool[] { false };
 
+
             TrainingSet TRAINING_SET = new TrainingSet();
-            TRAINING_SET.set = OR_SET;  // Choose set to train on, or make your own (linearly seperable) function set
+            TRAINING_SET.set = AND_SET;  // Choose set to train on, or make your own (linearly seperable) function set
 
             Console.WriteLine("Generating Neural Network...");
-            NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, 0, 0, Perceptron.FUNCTION_TYPE.SIGMOID, true);
+            NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, 2, 3, Perceptron.FUNCTION_TYPE.SIGMOID, true);
             Console.WriteLine("Generated!");
-            network.Train(TRAINING_SET, 0.96);
+            network.Train(TRAINING_SET, 0.90, false);
         }
     }
 }

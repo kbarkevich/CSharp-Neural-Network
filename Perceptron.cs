@@ -85,11 +85,11 @@ namespace CSharp_Neural_Network
         /// </summary>
         /// <param name="learningRate">The learning rate to adjust the input weights by.</param>
         /// <param name="error">The error size.</param>
-        public void BackPropogate(double learningRate, double error)
+        public void BackPropogate(double learningRate, double error, bool enhancedOutput)
         {
             foreach (Link inputLink in InputLinks)
             {
-                inputLink.BackPropogate(learningRate, error);
+                inputLink.BackPropogate(learningRate, error, enhancedOutput);
             }
         }
 

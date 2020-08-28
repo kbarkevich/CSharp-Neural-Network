@@ -112,7 +112,7 @@ namespace CSharp_Neural_Network
         /// <param name="trainingSet">The training set to train the neural network off of. Must represent a LINEARLY SEPERABLE function.</param>
         /// <param name="valid">Acceptable success ratio, between 0.0 and 1.0, at which to stop training.</param>
 
-        public void Train(TrainingSet trainingSet, double valid)
+        public void Train(TrainingSet trainingSet, double valid, bool enhancedOutput)
         {
             bool done = false;
             uint epochCount = 0;
@@ -152,9 +152,12 @@ namespace CSharp_Neural_Network
                         if (Extension)
                             Inputs[Inputs.Length - 1].Set(1);
                         // ---------------------- TRAINING RUN PART 2: FEED FORWARD AND PRINT OUTPUTS + EXPECTED OUTPUTS ----------------------
-                        Run();
-                        Console.WriteLine("Expected: " + expectedStr);
-                        Console.WriteLine();
+                        Run(enhancedOutput);
+                        if (enhancedOutput)
+                        {
+                            Console.WriteLine("Expected: " + expectedStr);
+                            Console.WriteLine();
+                        }
                         // ---------------------- TRAINING RUN PART 3: BACKPROPAGATE ---------------------- 
                         double sum = 0.0;
                         for (int i = 0; i < expected.Length; i++)
@@ -169,9 +172,17 @@ namespace CSharp_Neural_Network
                             //sum += Math.Abs(error);
                             if (Outputs[i].Error != 0.0)
                             {
-                                Outputs[i].BackPropogate(LearningRate, Outputs[i].Error);
+                                Outputs[i].BackPropogate(LearningRate, Outputs[i].Error, enhancedOutput);
                             }
                             sum += Math.Abs(expected[i] - Outputs[i].Read());
+                        }
+                        for (int i = HiddenLayers.GetLength(0) - 1; i >= 0; i--)
+                        {
+                            for (int j = 0; j < HiddenLayers.GetLength(1); j++)
+                            {
+                                HiddenLayers[i, j].CalculateError();
+                                HiddenLayers[i, j].BackPropogate(LearningRate, HiddenLayers[i, j].Error, enhancedOutput);
+                            }
                         }
                         Console.WriteLine();
                         Console.WriteLine();
@@ -197,15 +208,23 @@ namespace CSharp_Neural_Network
         /// <summary>
         /// Run the neural network with the current inputs stored in the input perceptrons.
         /// </summary>
-        private void Run()
+        private void Run(bool enhancedOutput)
         {
-            Console.WriteLine("Input: " + Input());
-            uint count = 0;
+            if (enhancedOutput)
+                Console.WriteLine("Input: " + Input());
+            for (int i = 0; i < HiddenLayers.GetLength(0); i++)
+            {
+                for (int j = 0; j < HiddenLayers.GetLength(1); j++)
+                {
+                    HiddenLayers[i, j].Set();
+                }
+            }
             foreach (Perceptron perceptron in Outputs)
             {
                 perceptron.Set();
             }
-            Console.WriteLine("Output: " + Output());
+            if (enhancedOutput)
+                Console.WriteLine("Output: " + Output());
         }
 
         /// <summary>

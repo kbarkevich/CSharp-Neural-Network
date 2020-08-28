@@ -46,13 +46,17 @@ namespace CSharp_Neural_Network
         /// </summary>
         /// <param name="learningRate">Rate at which the weight is adjusted.</param>
         /// <param name="error">The size of the error.</param>
-        public void BackPropogate(double learningRate, double error)
+        public void BackPropogate(double learningRate, double error, bool enhancedOutput)
         {
-            Console.WriteLine("UPDATING " + ToString());
-            Console.WriteLine("Rate: " + learningRate.ToString() + ", xi:" + Start.Read().ToString() + ", error: " + error.ToString());
-            Console.WriteLine("From " + Weight.ToString());
+            if (enhancedOutput)
+            {
+                Console.WriteLine("UPDATING " + ToString());
+                Console.WriteLine("Rate: " + learningRate.ToString() + ", xi:" + Start.Read().ToString() + ", error: " + error.ToString());
+                Console.WriteLine("From " + Weight.ToString());
+            }
             Weight = Weight - (learningRate * Start.Read() * error);
-            Console.WriteLine("To   " + Weight.ToString());
+            if (enhancedOutput)
+                Console.WriteLine("To   " + Weight.ToString());
         }
 
         /// <summary>

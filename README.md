@@ -1,5 +1,5 @@
 # CSharp-Neural-Network
-A perceptron-based Neural Network in C#.
+A feed-forward perceptron-based Neural Network in C#.
 
 This project uses the .NET Core framework.
 

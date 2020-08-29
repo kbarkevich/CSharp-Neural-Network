@@ -62,12 +62,12 @@ namespace CSharp_Neural_Network
 
 
             TrainingSet TRAINING_SET = new TrainingSet();
-            TRAINING_SET.set = XOR_SET;  // Choose set to train on, or make your own function set
+            TRAINING_SET.set = AND_SET;  // Choose set to train on, or make your own function set
 
             Console.WriteLine("Generating Neural Network...");
-            NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, 2, 3, Perceptron.FUNCTION_TYPE.SIGMOID, true);
+            NeuralNetwork network = new NeuralNetwork(0.2, 2, 1, 0, 0, Perceptron.FUNCTION_TYPE.SIGMOID, true);
             Console.WriteLine("Generated!");
-            network.Train(TRAINING_SET, 0.90, false);
+            network.Train(TRAINING_SET, 0.95, false);
         }
     }
 }

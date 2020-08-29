@@ -3,6 +3,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CSharp_Neural_Network
 {
@@ -114,7 +116,7 @@ namespace CSharp_Neural_Network
         /// <param name="trainingSet">The training set to train the neural network off of. Must represent a LINEARLY SEPERABLE function.</param>
         /// <param name="valid">Acceptable success ratio, between 0.0 and 1.0, at which to stop training.</param>
         /// <param name="enhancedOutput">Print enhanced debugging output.</param>
-        public void Train(TrainingSet trainingSet, double valid, bool enhancedOutput)
+        public async void Train(TrainingSet trainingSet, double valid, bool enhancedOutput)
         {
             bool done = false;
             uint epochCount = 0;
@@ -162,6 +164,16 @@ namespace CSharp_Neural_Network
                         }
                         // ---------------------- TRAINING RUN PART 3: BACKPROPAGATE ---------------------- 
                         double sum = 0.0;
+
+                        List<Task> tasks = new List<Task>();
+                        for (int i = 0; i < expected.Length; i++)
+                        {
+                            tasks.Add(Outputs[i].BackPropogate(LearningRate, expected[i], enhancedOutput));
+                            sum += Math.Abs(expected[i] - Outputs[i].Read());
+                        }
+                        await Task.WhenAll(tasks);
+
+                        /*
                         for (int i = 0; i < expected.Length; i++)
                         {
                             //double error = expected[i] - Outputs[i].Read();
@@ -178,13 +190,23 @@ namespace CSharp_Neural_Network
                             }
                             sum += Math.Abs(expected[i] - Outputs[i].Read());
                         }
+                        */
+
                         for (int i = HiddenLayers.GetLength(0) - 1; i >= 0; i--)
                         {
+                            tasks = new List<Task>();
+                            for (int j = 0; j < HiddenLayers.GetLength(1); j++)
+                            {
+                                tasks.Add(HiddenLayers[i, j].BackPropogate(LearningRate, enhancedOutput));
+                            }
+                            await Task.WhenAll(tasks);
+                            /*
                             for (int j = 0; j < HiddenLayers.GetLength(1); j++)
                             {
                                 HiddenLayers[i, j].CalculateError();
                                 HiddenLayers[i, j].BackPropogate(LearningRate, HiddenLayers[i, j].Error, enhancedOutput);
                             }
+                            */
                         }
                         Console.WriteLine();
                         Console.WriteLine();

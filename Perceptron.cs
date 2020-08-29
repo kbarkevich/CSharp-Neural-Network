@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading.Tasks;
 
 namespace CSharp_Neural_Network
 {
@@ -77,12 +78,14 @@ namespace CSharp_Neural_Network
         /// <param name="learningRate">The learning rate to adjust the input weights by.</param>
         /// <param name="error">The error size.</param>
         /// <param name="enhancedOutput">Print enhanced debugging output.</param>
-        public void BackPropogate(double learningRate, double error, bool enhancedOutput)
+        public Task BackPropogate(double learningRate, bool enhancedOutput)
         {
+            CalculateError();
             foreach (Link inputLink in InputLinks)
             {
-                inputLink.BackPropogate(learningRate, error, enhancedOutput);
+                inputLink.BackPropogate(learningRate, Error, enhancedOutput);
             }
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -152,6 +155,22 @@ namespace CSharp_Neural_Network
             InputLinks = new List<Link>();
             Z = 0;
             Value = 0;
+        }
+
+        /// <summary>
+        /// Back-propogate from this perceptron, adjusting weights to its associated input links.
+        /// </summary>
+        /// <param name="learningRate">The learning rate to adjust the input weights by.</param>
+        /// <param name="error">The error size.</param>
+        /// <param name="enhancedOutput">Print enhanced debugging output.</param>
+        public Task BackPropogate(double learningRate, double expected, bool enhancedOutput)
+        {
+            CalculateError(expected);
+            foreach (Link inputLink in InputLinks)
+            {
+                inputLink.BackPropogate(learningRate, Error, enhancedOutput);
+            }
+            return Task.CompletedTask;
         }
 
         /// <summary>
